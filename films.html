@@ -1,0 +1,806 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Фильмы — Звёздные Войны</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Russo One', sans-serif;
+  overflow-x: hidden;
+}
+
+#stars-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+nav {
+  position: fixed;
+  top: 0; width: 100%;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.95), transparent);
+}
+
+.nav-logo {
+  font-size: 1.4rem;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px #FFE81F88;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #FFE81F;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.nav-links a:hover { opacity: 1; text-shadow: 0 0 15px #FFE81F; }
+
+/* HERO */
+.hero {
+  position: relative;
+  z-index: 1;
+  padding: 160px 20px 80px;
+  text-align: center;
+}
+
+.hero h1 {
+  font-size: clamp(2.5rem, 7vw, 5rem);
+  color: #FFE81F;
+  letter-spacing: 8px;
+  text-shadow: 0 0 30px #FFE81F66;
+  margin-bottom: 20px;
+  animation: fadeIn 1s ease both;
+}
+
+.hero p {
+  color: #666;
+  letter-spacing: 4px;
+  font-size: 0.9rem;
+  animation: fadeIn 1s ease 0.5s both;
+}
+
+/* ФИЛЬТРЫ */
+.filters {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  padding: 0 20px 60px;
+  flex-wrap: wrap;
+}
+
+.filter-btn {
+  padding: 10px 25px;
+  border: 1px solid #FFE81F44;
+  background: transparent;
+  color: #FFE81F;
+  font-family: 'Russo One', sans-serif;
+  letter-spacing: 2px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  opacity: 0.6;
+}
+
+.filter-btn:hover,
+.filter-btn.active {
+  background: #FFE81F;
+  color: #000;
+  opacity: 1;
+  border-color: #FFE81F;
+}
+
+/* ФИЛЬМЫ */
+.films-container {
+  position: relative;
+  z-index: 1;
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 0 20px 100px;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 30px;
+}
+
+.film-card {
+  background: #0a0a0a;
+  border: 1px solid #FFE81F22;
+  position: relative;
+  overflow: hidden;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: border-color 0.4s, transform 0.4s;
+  cursor: pointer;
+}
+
+.film-card.visible {
+  animation: cardIn 0.6s ease forwards;
+}
+
+.film-card:hover {
+  border-color: #FFE81F66;
+  transform: translateY(-5px) !important;
+}
+
+.film-card:hover .film-overlay {
+  opacity: 1;
+}
+
+/* ПОСТЕР */
+.film-poster {
+  width: 100%;
+  aspect-ratio: 2/3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Постеры разными цветами */
+.film-card[data-ep="4"] .film-poster {
+  background: linear-gradient(135deg, #0a0500, #1a1000, #0a0500);
+}
+.film-card[data-ep="5"] .film-poster {
+  background: linear-gradient(135deg, #00050a, #001020, #00050a);
+}
+.film-card[data-ep="6"] .film-poster {
+  background: linear-gradient(135deg, #050a00, #0a1500, #050a00);
+}
+.film-card[data-ep="1"] .film-poster {
+  background: linear-gradient(135deg, #0a0000, #1a0500, #0a0000);
+}
+.film-card[data-ep="2"] .film-poster {
+  background: linear-gradient(135deg, #000a00, #001a10, #000a00);
+}
+.film-card[data-ep="3"] .film-poster {
+  background: linear-gradient(135deg, #0a0005, #100015, #0a0005);
+}
+
+.poster-saber {
+  width: 4px;
+  border-radius: 2px;
+  margin-bottom: 30px;
+  transition: height 0.5s;
+}
+
+.film-card[data-ep="4"] .poster-saber,
+.film-card[data-ep="5"] .poster-saber,
+.film-card[data-ep="6"] .poster-saber {
+  height: 100px;
+  background: linear-gradient(to top, #0044ff, #4488ff, #fff);
+  box-shadow: 0 0 15px #0044ff, 0 0 30px #0044ff66;
+}
+
+.film-card[data-ep="1"] .poster-saber,
+.film-card[data-ep="2"] .poster-saber,
+.film-card[data-ep="3"] .poster-saber {
+  height: 100px;
+  background: linear-gradient(to top, #ff0000, #ff4444, #fff);
+  box-shadow: 0 0 15px #ff0000, 0 0 30px #ff000066;
+}
+
+.film-card:hover .poster-saber { height: 140px; }
+
+.poster-ep {
+  font-size: 5rem;
+  color: #FFE81F;
+  opacity: 0.15;
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  line-height: 1;
+}
+
+.poster-stars-small {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background-image:
+    radial-gradient(circle, white 1px, transparent 1px),
+    radial-gradient(circle, white 1px, transparent 1px),
+    radial-gradient(circle, rgba(255,232,31,0.8) 1px, transparent 1px);
+  background-size: 80px 80px, 60px 60px, 100px 100px;
+  background-position: 10px 10px, 40px 40px, 20px 60px;
+  opacity: 0.3;
+}
+
+.film-overlay {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.7);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.watch-btn-overlay {
+  display: inline-block;
+  padding: 15px 35px;
+  border: 2px solid #FFE81F;
+  color: #FFE81F;
+  font-family: 'Russo One', sans-serif;
+  letter-spacing: 3px;
+  font-size: 0.9rem;
+  text-decoration: none;
+  transition: all 0.3s;
+  background: transparent;
+}
+
+.watch-btn-overlay:hover {
+  background: #FFE81F;
+  color: #000;
+}
+
+/* ИНФО */
+.film-info {
+  padding: 25px;
+  border-top: 1px solid #FFE81F22;
+}
+
+.film-episode {
+  font-size: 0.75rem;
+  color: #FFE81F;
+  letter-spacing: 4px;
+  opacity: 0.6;
+  margin-bottom: 8px;
+}
+
+.film-title {
+  font-size: 1.2rem;
+  color: #fff;
+  letter-spacing: 2px;
+  margin-bottom: 12px;
+  line-height: 1.3;
+}
+
+.film-meta {
+  display: flex;
+  gap: 20px;
+  margin-bottom: 15px;
+}
+
+.film-year, .film-duration {
+  font-size: 0.8rem;
+  color: #555;
+  letter-spacing: 2px;
+}
+
+.film-desc {
+  font-size: 0.8rem;
+  color: #555;
+  line-height: 1.7;
+  font-family: sans-serif;
+  margin-bottom: 20px;
+}
+
+.film-rating {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.stars-rating span {
+  color: #FFE81F;
+  font-size: 0.9rem;
+}
+
+.rating-num {
+  font-size: 0.85rem;
+  color: #888;
+  letter-spacing: 2px;
+}
+
+.watch-btn {
+  display: block;
+  padding: 14px;
+  background: transparent;
+  border: 1px solid #FFE81F44;
+  color: #FFE81F;
+  text-decoration: none;
+  text-align: center;
+  letter-spacing: 3px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.85rem;
+  transition: all 0.3s;
+}
+
+.watch-btn:hover {
+  background: #FFE81F;
+  color: #000;
+  border-color: #FFE81F;
+}
+
+/* МОДАЛКА */
+.modal {
+  display: none;
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  background: rgba(0,0,0,0.95);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+
+.modal.open { display: flex; }
+
+.modal-content {
+  width: 100%;
+  max-width: 1000px;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 0 20px;
+  border-bottom: 1px solid #FFE81F22;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  color: #FFE81F;
+  letter-spacing: 3px;
+  font-size: 1.1rem;
+}
+
+.modal-close {
+  background: none;
+  border: 1px solid #FFE81F44;
+  color: #FFE81F;
+  width: 40px;
+  height: 40px;
+  font-size: 1.2rem;
+  cursor: pointer;
+  transition: all 0.3s;
+  font-family: 'Russo One', sans-serif;
+}
+
+.modal-close:hover {
+  background: #FFE81F;
+  color: #000;
+}
+
+.modal-player {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border: 1px solid #FFE81F22;
+  background: #0a0a0a;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.open-external {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 20px;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  padding: 40px;
+}
+
+.open-external .play-icon {
+  font-size: 5rem;
+  cursor: pointer;
+  transition: transform 0.3s;
+  animation: pulse 2s infinite;
+}
+
+.open-external .play-icon:hover {
+  transform: scale(1.2);
+}
+
+@keyframes pulse {
+  0%, 100% { text-shadow: 0 0 20px #FFE81F44; }
+  50% { text-shadow: 0 0 40px #FFE81F, 0 0 60px #FFE81F66; }
+}
+
+.open-external p {
+  color: #888;
+  letter-spacing: 3px;
+  font-size: 0.85rem;
+}
+
+.open-external a {
+  display: inline-block;
+  padding: 15px 40px;
+  border: 2px solid #FFE81F;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 3px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.open-external a::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: #FFE81F;
+  transition: left 0.3s;
+  z-index: -1;
+}
+
+.open-external a:hover::before { left: 0; }
+.open-external a:hover { color: #000; }
+
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px;
+  border-top: 1px solid #FFE81F22;
+  color: #333;
+  letter-spacing: 3px;
+  font-size: 0.8rem;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 768px) {
+  .nav-links { display: none; }
+  .films-container { grid-template-columns: 1fr; max-width: 500px; }
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<div id="modal" class="modal">
+  <div class="modal-content">
+    <div class="modal-header">
+      <span class="modal-title" id="modal-title">ФИЛЬМ</span>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-player">
+      <div class="open-external" id="modal-player-content">
+        <div class="play-icon">▶️</div>
+        <p>НАЖМИ ЧТОБЫ СМОТРЕТЬ</p>
+        <a id="watch-link" href="#" target="_blank">ОТКРЫТЬ И СМОТРЕТЬ →</a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<nav>
+  <a href="index.html" class="nav-logo">⭐ SW</a>
+  <ul class="nav-links">
+    <li><a href="index.html">ГЛАВНАЯ</a></li>
+    <li><a href="choose.html">ВЫБОР СТОРОНЫ</a></li>
+    <li><a href="films.html">ФИЛЬМЫ</a></li>
+  </ul>
+</nav>
+
+<section class="hero">
+  <h1>САГА СКАЙУОКЕРОВ</h1>
+  <p>ВСЕ 6 ЭПИЗОДОВ — СМОТРИ ПРЯМО СЕЙЧАС</p>
+</section>
+
+<div class="filters">
+  <button class="filter-btn active" onclick="filterFilms('all', this)">ВСЕ</button>
+  <button class="filter-btn" onclick="filterFilms('original', this)">ОРИГИНАЛЬНАЯ ТРИЛОГИЯ</button>
+  <button class="filter-btn" onclick="filterFilms('prequel', this)">ПРИКВЕЛЫ</button>
+</div>
+
+<div class="films-container">
+
+  <!-- ЭПИЗОД 4 -->
+  <div class="film-card" data-ep="4" data-trilogy="original"
+    data-url="https://fbfree.site/film/333/"
+    data-title="ЭПИЗОД IV — НОВАЯ НАДЕЖДА">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">IV</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/333/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД IV</div>
+      <div class="film-title">НОВАЯ НАДЕЖДА</div>
+      <div class="film-meta">
+        <span class="film-year">📅 1977</span>
+        <span class="film-duration">⏱ 2ч 01мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating">
+          <span>★★★★★</span>
+        </div>
+        <span class="rating-num">8.6 / 10</span>
+      </div>
+      <p class="film-desc">Молодой фермер Люк Скайуокер случайно получает послание от принцессы Леи и отправляется спасать галактику от Тёмной Стороны Силы.</p>
+      <a href="https://fbfree.site/film/333/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+  <!-- ЭПИЗОД 5 -->
+  <div class="film-card" data-ep="5" data-trilogy="original"
+    data-url="https://fbfree.site/film/338/"
+    data-title="ЭПИЗОД V — ИМПЕРИЯ НАНОСИТ ОТВЕТНЫЙ УДАР">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">V</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/338/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД V</div>
+      <div class="film-title">ИМПЕРИЯ НАНОСИТ ОТВЕТНЫЙ УДАР</div>
+      <div class="film-meta">
+        <span class="film-year">📅 1980</span>
+        <span class="film-duration">⏱ 2ч 04мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating"><span>★★★★★</span></div>
+        <span class="rating-num">8.7 / 10</span>
+      </div>
+      <p class="film-desc">Империя наносит сокрушительный удар по Альянсу. Люк отправляется к Йоде обучаться, а Вейдер открывает ему страшную тайну.</p>
+      <a href="https://fbfree.site/film/338/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+  <!-- ЭПИЗОД 6 -->
+  <div class="film-card" data-ep="6" data-trilogy="original"
+    data-url="https://fbfree.site/film/447/"
+    data-title="ЭПИЗОД VI — ВОЗВРАЩЕНИЕ ДЖЕДАЯ">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">VI</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/447/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД VI</div>
+      <div class="film-title">ВОЗВРАЩЕНИЕ ДЖЕДАЯ</div>
+      <div class="film-meta">
+        <span class="film-year">📅 1983</span>
+        <span class="film-duration">⏱ 2ч 11мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating"><span>★★★★☆</span></div>
+        <span class="rating-num">8.3 / 10</span>
+      </div>
+      <p class="film-desc">Финальная битва. Люк должен встретиться с Вейдером и Императором, чтобы спасти галактику и вернуть отца на светлую сторону.</p>
+      <a href="https://fbfree.site/film/447/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+  <!-- ЭПИЗОД 1 -->
+  <div class="film-card" data-ep="1" data-trilogy="prequel"
+    data-url="https://fbfree.site/film/6695/"
+    data-title="ЭПИЗОД I — СКРЫТАЯ УГРОЗА">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">I</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/6695/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД I</div>
+      <div class="film-title">СКРЫТАЯ УГРОЗА</div>
+      <div class="film-meta">
+        <span class="film-year">📅 1999</span>
+        <span class="film-duration">⏱ 2ч 16мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating"><span>★★★☆☆</span></div>
+        <span class="rating-num">6.5 / 10</span>
+      </div>
+      <p class="film-desc">Джедаи Квай-Гон Джинн и Оби-Ван Кеноби находят юного Энакина Скайуокера — мальчика, которому суждено восстановить баланс в Силе.</p>
+      <a href="https://fbfree.site/film/6695/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+  <!-- ЭПИЗОД 2 -->
+  <div class="film-card" data-ep="2" data-trilogy="prequel"
+    data-url="https://fbfree.site/film/844/"
+    data-title="ЭПИЗОД II — АТАКА КЛОНОВ">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">II</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/844/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД II</div>
+      <div class="film-title">АТАКА КЛОНОВ</div>
+      <div class="film-meta">
+        <span class="film-year">📅 2002</span>
+        <span class="film-duration">⏱ 2ч 22мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating"><span>★★★☆☆</span></div>
+        <span class="rating-num">6.5 / 10</span>
+      </div>
+      <p class="film-desc">Энакин влюбляется в Падме, пока Республика оказывается на пороге войны с Сепаратистами. Появляется армия клонов.</p>
+      <a href="https://fbfree.site/film/844/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+  <!-- ЭПИЗОД 3 -->
+  <div class="film-card" data-ep="3" data-trilogy="prequel"
+    data-url="https://fbfree.site/film/5619/"
+    data-title="ЭПИЗОД III — МЕСТЬ СИТХОВ">
+    <div class="film-poster">
+      <div class="poster-stars-small"></div>
+      <div class="poster-saber"></div>
+      <div class="poster-ep">III</div>
+      <div class="film-overlay">
+        <a href="https://fbfree.site/film/5619/" target="_blank" class="watch-btn-overlay">▶ СМОТРЕТЬ</a>
+      </div>
+    </div>
+    <div class="film-info">
+      <div class="film-episode">ЭПИЗОД III</div>
+      <div class="film-title">МЕСТЬ СИТХОВ</div>
+      <div class="film-meta">
+        <span class="film-year">📅 2005</span>
+        <span class="film-duration">⏱ 2ч 20мин</span>
+      </div>
+      <div class="film-rating">
+        <div class="stars-rating"><span>★★★★☆</span></div>
+        <span class="rating-num">7.5 / 10</span>
+      </div>
+      <p class="film-desc">Трагедия Энакина Скайуокера. Республика падает, Орден Джедаев уничтожен. Рождается Дарт Вейдер. Самый тёмный эпизод саги.</p>
+      <a href="https://fbfree.site/film/5619/" target="_blank" class="watch-btn">▶ СМОТРЕТЬ ФИЛЬМ</a>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  <p>ЗВЁЗДНЫЕ ВОЙНЫ — ФАН СТРАНИЦА • ДА ПРЕБУДЕТ С ТОБОЙ СИЛА</p>
+</footer>
+
+<script>
+// ЗВЁЗДЫ
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const stars = [];
+for (let i = 0; i < 300; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2,
+    speed: Math.random() * 0.3 + 0.05,
+    opacity: Math.random(),
+    twinkle: Math.random() * 0.02 + 0.005,
+    twinkleDir: Math.random() > 0.5 ? 1 : -1,
+    yellow: Math.random() > 0.75
+  });
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(star => {
+    star.opacity += star.twinkle * star.twinkleDir;
+    if (star.opacity >= 1 || star.opacity <= 0.1) star.twinkleDir *= -1;
+    star.y += star.speed;
+    if (star.y > canvas.height) { star.y = 0; star.x = Math.random() * canvas.width; }
+
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    if (star.yellow && star.r > 1.2) {
+      ctx.fillStyle = `rgba(255, 232, 31, ${star.opacity})`;
+      ctx.shadowColor = '#FFE81F';
+      ctx.shadowBlur = 10;
+    } else {
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+      ctx.shadowBlur = star.r > 1.5 ? 5 : 0;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// АНИМАЦИИ КАРТОЧЕК
+const cards = document.querySelectorAll('.film-card');
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 120);
+    }
+  });
+}, { threshold: 0.1 });
+cards.forEach(card => observer.observe(card));
+
+// ФИЛЬТРЫ
+function filterFilms(type, btn) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+
+  cards.forEach(card => {
+    if (type === 'all' || card.dataset.trilogy === type) {
+      card.style.display = 'block';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// МОДАЛКА
+function openModal(url, title) {
+  document.getElementById('modal-title').textContent = title;
+  document.getElementById('watch-link').href = url;
+  document.getElementById('modal').classList.add('open');
+  document.body.style.overflow = 'hidden';
+}
+
+function closeModal() {
+  document.getElementById('modal').classList.remove('open');
+  document.body.style.overflow = '';
+}
+
+document.getElementById('modal').addEventListener('click', function(e) {
+  if (e.target === this) closeModal();
+});
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
