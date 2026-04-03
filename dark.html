@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Тёмная Сторона — Звёздные Войны</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  background: #000;
+  color: #fff;
+  font-family: 'Russo One', sans-serif;
+  overflow-x: hidden;
+}
+
+#stars-canvas {
+  position: fixed;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Красное свечение фон */
+.red-glow {
+  position: fixed;
+  top: -200px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 800px;
+  height: 800px;
+  background: radial-gradient(circle, #ff000015, transparent 70%);
+  pointer-events: none;
+  z-index: 0;
+}
+
+nav {
+  position: fixed;
+  top: 0; width: 100%;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+}
+
+.nav-logo {
+  font-size: 1.4rem;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px #FFE81F88;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #FFE81F;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  opacity: 0.8;
+  transition: opacity 0.3s;
+}
+
+.nav-links a:hover { opacity: 1; text-shadow: 0 0 15px #FFE81F; }
+
+/* HERO */
+.hero {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+  background: radial-gradient(ellipse at top, #1a000088, transparent 60%);
+}
+
+.hero-tag {
+  font-size: 0.85rem;
+  letter-spacing: 6px;
+  color: #ff3333;
+  opacity: 0.7;
+  margin-bottom: 20px;
+  animation: fadeIn 1s ease 0.3s both;
+}
+
+.hero-title {
+  font-size: clamp(3rem, 9vw, 7rem);
+  color: #ff2222;
+  line-height: 1;
+  letter-spacing: 5px;
+  text-shadow:
+    0 0 30px #ff0000,
+    0 0 60px #ff000066,
+    0 0 100px #ff000033;
+  animation: fadeIn 1s ease 0.7s both;
+  margin-bottom: 20px;
+}
+
+.hero-sub {
+  font-size: 1rem;
+  letter-spacing: 5px;
+  color: #ff6666;
+  opacity: 0.7;
+  animation: fadeIn 1s ease 1.1s both;
+  margin-bottom: 50px;
+}
+
+.saber-anim {
+  width: 6px;
+  height: 0;
+  background: linear-gradient(to top, #ff0000, #ff4444, #ffaaaa, #fff);
+  border-radius: 3px;
+  box-shadow: 0 0 20px #ff0000, 0 0 40px #ff000066;
+  animation: saberGrow 1.5s ease 1.5s both;
+  margin: 0 auto 30px;
+}
+
+@keyframes saberGrow {
+  to { height: 150px; }
+}
+
+/* ЦИТАТА */
+.quote-section {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px;
+  text-align: center;
+  border-top: 1px solid #ff000022;
+  border-bottom: 1px solid #ff000022;
+}
+
+.big-quote {
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: #ff3333;
+  letter-spacing: 4px;
+  text-shadow: 0 0 30px #ff000044;
+  line-height: 1.5;
+  max-width: 900px;
+  margin: 0 auto 20px;
+}
+
+.quote-author {
+  color: #666;
+  letter-spacing: 3px;
+  font-size: 0.85rem;
+}
+
+/* ПЕРСОНАЖИ */
+.section-title {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 80px 20px 50px;
+  font-size: clamp(1.5rem, 4vw, 2.5rem);
+  color: #ff3333;
+  letter-spacing: 6px;
+  text-shadow: 0 0 20px #ff000044;
+}
+
+.chars-grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 2px;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+.char-card {
+  background: #0a0000;
+  border: 1px solid #ff000022;
+  padding: 50px 30px;
+  text-align: center;
+  transition: all 0.4s;
+  opacity: 0;
+  transform: translateY(40px);
+  position: relative;
+  overflow: hidden;
+}
+
+.char-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 3px;
+  background: linear-gradient(to right, transparent, #ff3333, transparent);
+  transform: scaleX(0);
+  transition: transform 0.4s;
+}
+
+.char-card:hover::before { transform: scaleX(1); }
+
+.char-card.visible {
+  animation: cardIn 0.6s ease forwards;
+}
+
+.char-card:hover {
+  background: #130000;
+  border-color: #ff333344;
+  transform: translateY(-5px);
+}
+
+.char-emoji {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.char-name {
+  font-size: 1.3rem;
+  color: #ff3333;
+  letter-spacing: 3px;
+  margin-bottom: 10px;
+  text-shadow: 0 0 15px #ff000044;
+}
+
+.char-title {
+  font-size: 0.8rem;
+  color: #ff6666;
+  letter-spacing: 3px;
+  opacity: 0.7;
+  margin-bottom: 20px;
+}
+
+.char-desc {
+  color: #666;
+  font-size: 0.85rem;
+  line-height: 1.8;
+  letter-spacing: 1px;
+  font-family: sans-serif;
+}
+
+/* ФИЛОСОФИЯ */
+.philosophy {
+  position: relative;
+  z-index: 1;
+  padding: 100px 20px;
+  max-width: 900px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.philosophy h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: #ff3333;
+  letter-spacing: 5px;
+  margin-bottom: 40px;
+}
+
+.code-of-sith {
+  border: 1px solid #ff000033;
+  padding: 50px;
+  background: #0a0000;
+  position: relative;
+}
+
+.code-of-sith::before {
+  content: '⚡';
+  position: absolute;
+  top: -20px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 2rem;
+  background: #000;
+  padding: 0 10px;
+}
+
+.code-line {
+  font-size: clamp(1rem, 2.5vw, 1.4rem);
+  color: #ff4444;
+  letter-spacing: 4px;
+  margin: 20px 0;
+  opacity: 0;
+  text-shadow: 0 0 15px #ff000033;
+}
+
+.code-line.visible {
+  animation: fadeIn 0.8s ease forwards;
+}
+
+/* ОРУЖИЕ */
+.weapons {
+  position: relative;
+  z-index: 1;
+  padding: 80px 20px;
+  text-align: center;
+  border-top: 1px solid #ff000022;
+}
+
+.weapons h2 {
+  font-size: clamp(1.5rem, 3vw, 2rem);
+  color: #ff3333;
+  letter-spacing: 5px;
+  margin-bottom: 50px;
+}
+
+.weapons-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 30px;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.weapon-item {
+  padding: 30px;
+  border: 1px solid #ff000022;
+  background: #0a0000;
+  transition: all 0.3s;
+}
+
+.weapon-item:hover {
+  border-color: #ff3333;
+  box-shadow: 0 0 30px #ff000022;
+}
+
+.weapon-icon { font-size: 3rem; margin-bottom: 15px; display: block; }
+.weapon-name {
+  color: #ff4444;
+  letter-spacing: 3px;
+  font-size: 0.9rem;
+  margin-bottom: 10px;
+}
+.weapon-desc { color: #555; font-size: 0.8rem; line-height: 1.6; font-family: sans-serif; }
+
+.back-btn {
+  position: relative;
+  z-index: 1;
+  display: block;
+  text-align: center;
+  padding: 80px 20px;
+}
+
+.back-btn a {
+  display: inline-block;
+  padding: 18px 50px;
+  border: 2px solid #ff3333;
+  color: #ff3333;
+  text-decoration: none;
+  letter-spacing: 4px;
+  font-family: 'Russo One', sans-serif;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.back-btn a::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: #ff3333;
+  transition: left 0.3s;
+  z-index: -1;
+}
+
+.back-btn a:hover::before { left: 0; }
+.back-btn a:hover { color: #000; }
+
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 40px;
+  border-top: 1px solid #ff000022;
+  color: #333;
+  letter-spacing: 3px;
+  font-size: 0.8rem;
+}
+
+@keyframes fadeIn { to { opacity: 1; } }
+@keyframes cardIn { to { opacity: 1; transform: translateY(0); } }
+
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .code-of-sith { padding: 30px 20px; }
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+<div class="red-glow"></div>
+
+<nav>
+  <a href="index.html" class="nav-logo">⭐ SW</a>
+  <ul class="nav-links">
+    <li><a href="index.html">ГЛАВНАЯ</a></li>
+    <li><a href="choose.html">ВЫБОР СТОРОНЫ</a></li>
+    <li><a href="films.html">ФИЛЬМЫ</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-tag">ПРИСОЕДИНИСЬ К НАМ</div>
+  <div class="saber-anim"></div>
+  <h1 class="hero-title">ТЁМНАЯ<br>СТОРОНА</h1>
+  <p class="hero-sub">СИЛА. ВЛАСТЬ. БЕССМЕРТИЕ.</p>
+</section>
+
+<!-- ЦИТАТА -->
+<section class="quote-section">
+  <p class="big-quote">"Не знаешь ты мощи тёмной стороны Силы"</p>
+  <p class="quote-author">— ДАРТ ВЕЙДЕР</p>
+</section>
+
+<!-- ПЕРСОНАЖИ -->
+<h2 class="section-title">ПОВЕЛИТЕЛИ СИТХОВ</h2>
+
+<div class="chars-grid">
+
+  <div class="char-card">
+    <span class="char-emoji">🌑</span>
+    <div class="char-name">ДАРТ ВЕЙДЕР</div>
+    <div class="char-title">ТЁМНЫЙ ПОВЕЛИТЕЛЬ СИТХОВ</div>
+    <p class="char-desc">Когда-то величайший джедай Энакин Скайуокер, павший во тьму. Правая рука Императора. Его дыхание наводит ужас на всю галактику.</p>
+  </div>
+
+  <div class="char-card">
+    <span class="char-emoji">⚡</span>
+    <div class="char-name">ДАРТ СИДИУС</div>
+    <div class="char-title">ИМПЕРАТОР ГАЛАКТИКИ</div>
+    <p class="char-desc">Самый могущественный ситх в истории. Тайно манипулировал Республикой десятилетиями, превратив её в Империю.</p>
+  </div>
+
+  <div class="char-card">
+    <span class="char-emoji">🔴</span>
+    <div class="char-name">ДАРТ МОЛ</div>
+    <div class="char-title">УЧЕНИК ДАРТА СИДИУСА</div>
+    <p class="char-desc">Забританец, натренированный как оружие с детства. Мастер двойного светового меча. Выжил после разрубания напополам.</p>
+  </div>
+
+  <div class="char-card">
+    <span class="char-emoji">⚔️</span>
+    <div class="char-name">ГРАФ ДУК</div>
+    <div class="char-title">ДАРТ ТИРАНУС</div>
+    <p class="char-desc">Бывший мастер-джедай, разочаровавшийся в Республике. Аристократ и непревзойдённый фехтовальщик, лидер Сепаратистов.</p>
+  </div>
+
+  <div class="char-card">
+    <span class="char-emoji">👁️</span>
+    <div class="char-name">СНОУК</div>
+    <div class="char-title">ВЕРХОВНЫЙ ЛИДЕР</div>
+    <p class="char-desc">Загадочный и могущественный тёмный пользователь Силы. Лидер Первого Ордена, ставший марионеткой Палпатина.</p>
+  </div>
+
+  <div class="char-card">
+    <span class="char-emoji">🖤</span>
+    <div class="char-name">КАЙ ЛО РЕН</div>
+    <div class="char-title">МАСТЕР РЫЦАРЕЙ РЕН</div>
+    <p class="char-desc">Бен Соло — сын Хана Соло и Леи. Разрываемый светом и тьмой, он стал величайшим воином своего поколения.</p>
+  </div>
+
+</div>
+
+<!-- КОД СИТХОВ -->
+<section class="philosophy">
+  <h2>КОД СИТХОВ</h2>
+  <div class="code-of-sith">
+    <p class="code-line">Эмоция, но покой.</p>
+    <p class="code-line">Невежество, но знание.</p>
+    <p class="code-line">Страсть, но безмятежность.</p>
+    <p class="code-line">Хаос, но гармония.</p>
+    <p class="code-line">Смерть, но Сила.</p>
+  </div>
+</section>
+
+<!-- ОРУЖИЕ -->
+<section class="weapons">
+  <h2>ОРУЖИЕ ТЬМЫ</h2>
+  <div class="weapons-grid">
+    <div class="weapon-item">
+      <span class="weapon-icon">🔴</span>
+      <div class="weapon-name">СВЕТОВОЙ МЕЧ</div>
+      <p class="weapon-desc">Красный кристалл кайбер, "истерзанный" тёмной стороной. Символ ситхов.</p>
+    </div>
+    <div class="weapon-item">
+      <span class="weapon-icon">⚡</span>
+      <div class="weapon-name">СИЛА-МОЛНИЯ</div>
+      <p class="weapon-desc">Смертоносные молнии тёмной стороны. Фирменное оружие Императора.</p>
+    </div>
+    <div class="weapon-item">
+      <span class="weapon-icon">💀</span>
+      <div class="weapon-name">ЗВЕЗДА СМЕРТИ</div>
+      <p class="weapon-desc">Космическая станция размером с луну. Способна уничтожить целую планету.</p>
+    </div>
+  </div>
+</section>
+
+<div class="back-btn">
+  <a href="choose.html">← СМЕНИТЬ СТОРОНУ</a>
+</div>
+
+<footer>
+  <p>ТЁМНАЯ СТОРОНА СИЛЫ — ЗВЁЗДНЫЕ ВОЙНЫ ФАН СТРАНИЦА</p>
+</footer>
+
+<script>
+// ЗВЁЗДЫ
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const stars = [];
+for (let i = 0; i < 200; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.5,
+    speed: Math.random() * 0.2 + 0.05,
+    opacity: Math.random(),
+    twinkle: Math.random() * 0.02 + 0.005,
+    twinkleDir: Math.random() > 0.5 ? 1 : -1,
+    red: Math.random() > 0.8
+  });
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  stars.forEach(star => {
+    star.opacity += star.twinkle * star.twinkleDir;
+    if (star.opacity >= 1 || star.opacity <= 0.1) star.twinkleDir *= -1;
+    star.y += star.speed;
+    if (star.y > canvas.height) { star.y = 0; star.x = Math.random() * canvas.width; }
+
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+    if (star.red && star.r > 1) {
+      ctx.fillStyle = `rgba(255, 50, 50, ${star.opacity * 0.8})`;
+      ctx.shadowColor = '#ff0000';
+      ctx.shadowBlur = 8;
+    } else {
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity * 0.7})`;
+      ctx.shadowBlur = 0;
+    }
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+  requestAnimationFrame(drawStars);
+}
+drawStars();
+
+// АНИМАЦИИ ПРИ СКРОЛЛЕ
+const cards = document.querySelectorAll('.char-card');
+const codeLines = document.querySelectorAll('.code-line');
+
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry, i) => {
+    if (entry.isIntersecting) {
+      setTimeout(() => entry.target.classList.add('visible'), i * 150);
+    }
+  });
+}, { threshold: 0.1 });
+
+cards.forEach(card => observer.observe(card));
+codeLines.forEach(line => observer.observe(line));
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
