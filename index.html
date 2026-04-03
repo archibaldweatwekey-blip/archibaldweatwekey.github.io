@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Звёздные Войны</title>
+<link href="https://fonts.googleapis.com/css2?family=Russo+One&display=swap" rel="stylesheet">
+<style>
+
+@import url('https://fonts.googleapis.com/css2?family=Russo+One&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  background: #000;
+  color: #FFE81F;
+  font-family: 'Russo One', sans-serif;
+  overflow-x: hidden;
+  min-height: 100vh;
+}
+
+/* ЗВЁЗДЫ */
+#stars-canvas {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* НАВИГАЦИЯ */
+nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+  padding: 20px 40px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: linear-gradient(to bottom, rgba(0,0,0,0.9), transparent);
+}
+
+.nav-logo {
+  font-size: 1.4rem;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 3px;
+  text-shadow: 0 0 20px #FFE81F88;
+}
+
+.nav-links {
+  display: flex;
+  gap: 30px;
+  list-style: none;
+}
+
+.nav-links a {
+  color: #FFE81F;
+  text-decoration: none;
+  font-size: 0.9rem;
+  letter-spacing: 2px;
+  opacity: 0.8;
+  transition: opacity 0.3s, text-shadow 0.3s;
+}
+
+.nav-links a:hover {
+  opacity: 1;
+  text-shadow: 0 0 15px #FFE81F;
+}
+
+/* HERO */
+.hero {
+  position: relative;
+  z-index: 1;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 20px;
+}
+
+.hero-logo {
+  font-size: 1.2rem;
+  letter-spacing: 8px;
+  color: #FFE81F;
+  opacity: 0;
+  animation: fadeIn 1s ease 0.5s forwards;
+  text-shadow: 0 0 30px #FFE81F;
+}
+
+.hero-title {
+  font-size: clamp(3rem, 10vw, 7rem);
+  color: #FFE81F;
+  line-height: 1;
+  margin: 20px 0;
+  opacity: 0;
+  animation: fadeIn 1s ease 1s forwards;
+  text-shadow:
+    0 0 30px #FFE81F,
+    0 0 60px #FFE81F44,
+    0 0 100px #FFE81F22;
+  letter-spacing: 5px;
+}
+
+.hero-subtitle {
+  font-size: clamp(0.9rem, 2vw, 1.2rem);
+  color: #aaa;
+  letter-spacing: 4px;
+  margin-bottom: 50px;
+  opacity: 0;
+  animation: fadeIn 1s ease 1.5s forwards;
+}
+
+.hero-btn {
+  display: inline-block;
+  padding: 18px 50px;
+  border: 2px solid #FFE81F;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 4px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 1rem;
+  transition: all 0.3s;
+  opacity: 0;
+  animation: fadeIn 1s ease 2s forwards;
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: #FFE81F;
+  transition: left 0.3s;
+  z-index: -1;
+}
+
+.hero-btn:hover::before {
+  left: 0;
+}
+
+.hero-btn:hover {
+  color: #000;
+}
+
+/* БЕГУЩИЙ ТЕКСТ */
+.crawl-section {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  perspective: 400px;
+  padding: 100px 20px;
+  overflow: hidden;
+}
+
+.crawl-wrapper {
+  transform: rotateX(25deg);
+  transform-origin: bottom center;
+  width: 100%;
+  max-width: 700px;
+  text-align: center;
+  animation: crawl 30s linear infinite;
+}
+
+@keyframes crawl {
+  from { transform: rotateX(25deg) translateY(100%); }
+  to { transform: rotateX(25deg) translateY(-200%); }
+}
+
+.crawl-episode {
+  font-size: 1.2rem;
+  letter-spacing: 5px;
+  color: #FFE81F;
+  margin-bottom: 30px;
+  opacity: 0.7;
+}
+
+.crawl-title {
+  font-size: 2.5rem;
+  color: #FFE81F;
+  margin-bottom: 50px;
+  text-shadow: 0 0 20px #FFE81F;
+}
+
+.crawl-text {
+  font-size: 1.1rem;
+  line-height: 2;
+  color: #FFE81F;
+  opacity: 0.85;
+  margin-bottom: 20px;
+  font-family: 'Russo One', sans-serif;
+}
+
+/* СЕКЦИЯ ВЫБОРА */
+.choose-preview {
+  position: relative;
+  z-index: 1;
+  padding: 100px 20px;
+  text-align: center;
+}
+
+.choose-preview h2 {
+  font-size: clamp(2rem, 5vw, 3.5rem);
+  color: #FFE81F;
+  letter-spacing: 5px;
+  margin-bottom: 20px;
+  text-shadow: 0 0 20px #FFE81F44;
+}
+
+.choose-preview p {
+  color: #888;
+  letter-spacing: 3px;
+  margin-bottom: 60px;
+  font-size: 0.95rem;
+}
+
+.sides-preview {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 3px;
+  max-width: 900px;
+  margin: 0 auto 60px;
+  border: 1px solid #FFE81F22;
+}
+
+.side-dark-prev {
+  background: linear-gradient(135deg, #000, #1a0000);
+  padding: 60px 40px;
+  transition: all 0.4s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.side-light-prev {
+  background: linear-gradient(135deg, #000510, #00001a);
+  padding: 60px 40px;
+  transition: all 0.4s;
+  cursor: pointer;
+  text-decoration: none;
+  display: block;
+}
+
+.side-dark-prev:hover {
+  background: linear-gradient(135deg, #1a0000, #330000);
+  transform: scale(1.02);
+}
+
+.side-light-prev:hover {
+  background: linear-gradient(135deg, #000510, #000533);
+  transform: scale(1.02);
+}
+
+.side-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+  display: block;
+}
+
+.side-name {
+  font-size: 1.5rem;
+  letter-spacing: 4px;
+  display: block;
+}
+
+.side-dark-prev .side-name { color: #ff3333; text-shadow: 0 0 20px #ff3333; }
+.side-light-prev .side-name { color: #4488ff; text-shadow: 0 0 20px #4488ff; }
+
+.choose-full-btn {
+  display: inline-block;
+  padding: 18px 50px;
+  border: 2px solid #FFE81F;
+  color: #FFE81F;
+  text-decoration: none;
+  letter-spacing: 4px;
+  font-family: 'Russo One', sans-serif;
+  font-size: 0.9rem;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+}
+
+.choose-full-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: -100%;
+  width: 100%; height: 100%;
+  background: #FFE81F;
+  transition: left 0.3s;
+  z-index: -1;
+}
+
+.choose-full-btn:hover::before { left: 0; }
+.choose-full-btn:hover { color: #000; }
+
+/* ФУТЕР */
+footer {
+  position: relative;
+  z-index: 1;
+  text-align: center;
+  padding: 60px 20px;
+  border-top: 1px solid #FFE81F22;
+  color: #444;
+  letter-spacing: 3px;
+  font-size: 0.85rem;
+}
+
+footer span {
+  color: #FFE81F;
+  opacity: 0.6;
+}
+
+@keyframes fadeIn {
+  to { opacity: 1; }
+}
+
+/* МОБИЛЬНАЯ */
+@media (max-width: 600px) {
+  .nav-links { display: none; }
+  .sides-preview { grid-template-columns: 1fr; }
+  .crawl-wrapper { max-width: 95%; }
+}
+
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<nav>
+  <a href="index.html" class="nav-logo">⭐ SW</a>
+  <ul class="nav-links">
+    <li><a href="index.html">ГЛАВНАЯ</a></li>
+    <li><a href="choose.html">ВЫБОР СТОРОНЫ</a></li>
+    <li><a href="films.html">ФИЛЬМЫ</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="hero-logo">ДАЛЁКАЯ ГАЛАКТИКА</div>
+  <h1 class="hero-title">ЗВЁЗДНЫЕ<br>ВОЙНЫ</h1>
+  <p class="hero-subtitle">ЭПИЧЕСКАЯ САГА О СИЛЕ, НАДЕЖДЕ И СУДЬБЕ</p>
+  <a href="choose.html" class="hero-btn">ВЫБРАТЬ СТОРОНУ</a>
+</section>
+
+<!-- БЕГУЩИЙ ТЕКСТ -->
+<section class="crawl-section">
+  <div class="crawl-wrapper">
+    <div class="crawl-episode">ЭПИЗОД IV</div>
+    <div class="crawl-title">НОВАЯ НАДЕЖДА</div>
+    <p class="crawl-text">
+      Давным-давно, в далёкой-далёкой галактике шла гражданская война.
+    </p>
+    <p class="crawl-text">
+      Повстанцы, одержав первую победу над злобной Галактической Империей, похитили секретные планы её главного оружия — ЗВЕЗДЫ СМЕРТИ.
+    </p>
+    <p class="crawl-text">
+      Это бронированная космическая станция, обладающая достаточной мощью, чтобы уничтожить целую планету.
+    </p>
+    <p class="crawl-text">
+      Преследуемая зловещими агентами Империи, принцесса Лея мчится домой на борту своего звёздного корабля, унося с собой похищенные планы — последнюю надежду своего народа...
+    </p>
+  </div>
+</section>
+
+<!-- ПРЕВЬЮ ВЫБОРА -->
+<section class="choose-preview">
+  <h2>ВЫБЕРИ СВОЮ СТОРОНУ</h2>
+  <p>К КАКОЙ СТОРОНЕ СИЛЫ ПРИНАДЛЕЖИШЬ ТЫ?</p>
+
+  <div class="sides-preview">
+    <a href="dark.html" class="side-dark-prev">
+      <span class="side-icon">⚔️</span>
+      <span class="side-name">ТЁМНАЯ СТОРОНА</span>
+    </a>
+    <a href="light.html" class="side-light-prev">
+      <span class="side-icon">✨</span>
+      <span class="side-name">СВЕТЛАЯ СТОРОНА</span>
+    </a>
+  </div>
+
+  <a href="choose.html" class="choose-full-btn">ПЕРЕЙТИ К ВЫБОРУ</a>
+</section>
+
+<footer>
+  <p><span>ЗВЁЗДНЫЕ ВОЙНЫ</span> — ФАН СТРАНИЦА</p>
+  <p style="margin-top:10px">Да пребудет с тобой Сила</p>
+</footer>
+
+<script>
+// ЗВЁЗДЫ
+const canvas = document.getElementById('stars-canvas');
+const ctx = canvas.getContext('2d');
+
+canvas.width = window.innerWidth;
+canvas.height = window.innerHeight;
+
+const stars = [];
+const STAR_COUNT = 300;
+
+for (let i = 0; i < STAR_COUNT; i++) {
+  stars.push({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 2,
+    speed: Math.random() * 0.3 + 0.05,
+    opacity: Math.random(),
+    twinkle: Math.random() * 0.02 + 0.005,
+    twinkleDir: Math.random() > 0.5 ? 1 : -1,
+    yellow: Math.random() > 0.7
+  });
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+  stars.forEach(star => {
+    star.opacity += star.twinkle * star.twinkleDir;
+    if (star.opacity >= 1 || star.opacity <= 0.1) {
+      star.twinkleDir *= -1;
+    }
+
+    star.y += star.speed;
+    if (star.y > canvas.height) {
+      star.y = 0;
+      star.x = Math.random() * canvas.width;
+    }
+
+    ctx.beginPath();
+    ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+
+    if (star.yellow && star.r > 1.2) {
+      ctx.fillStyle = `rgba(255, 232, 31, ${star.opacity})`;
+      ctx.shadowColor = '#FFE81F';
+      ctx.shadowBlur = 10;
+    } else {
+      ctx.fillStyle = `rgba(255, 255, 255, ${star.opacity})`;
+      ctx.shadowColor = 'white';
+      ctx.shadowBlur = star.r > 1.5 ? 6 : 0;
+    }
+
+    ctx.fill();
+    ctx.shadowBlur = 0;
+  });
+
+  requestAnimationFrame(drawStars);
+}
+
+drawStars();
+
+window.addEventListener('resize', () => {
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+});
+</script>
+
+</body>
+</html>
